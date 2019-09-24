@@ -1,0 +1,7 @@
+.gallery{
+  display: flex;
+  flex-wrap: wrap;
+}
+.gallery__item {
+  flex: 0 1 50%;
+}
