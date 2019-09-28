@@ -7,12 +7,10 @@ export default class GalleryList extends	React.Component {
 		super();
 		this.state = {
 			gallery: [],
-			filtredGallery: [],
 			isFetching: false,
 			isAuto: false,
-			interval: 0,
-			range: 0,
-			max: 100
+			rangeValue: 0,
+			maxRange: 100
 			//max: Math.max(...array1)
 		};
 	}
@@ -21,19 +19,15 @@ export default class GalleryList extends	React.Component {
 		const link = "https://www.reddit.com/r/reactjs.json?limit=100";
 		this.setState({
 			isFetching: true,
-			gallery: [],
-			filtredGallery: []
+			gallery: []
 		});
 		fetch(link)
 			.then(response => {
 				return response.json();
 			})
 			.then(data => {
-				let gallery = data.data.children;
-				let filtredGallery = this.state.range ? gallery.filter(item => item.data.num_comments === +this.state.range) : gallery
 				this.setState({
-					gallery,
-					filtredGallery,
+					gallery: data.data.children,
 					isFetching: false
 				});
 			});
@@ -45,6 +39,10 @@ export default class GalleryList extends	React.Component {
 
 	sortGallery = (arr) => {
 		return arr.sort((a,b) => b.data.num_comments - a.data.num_comments )
+	};
+	filterGallery = (arr) => {
+		const { rangeValue, gallery } = this.state;
+		return rangeValue ? gallery.filter(item => item.data.num_comments === +rangeValue) : gallery
 	};
 
 	refresh = () => {
@@ -60,23 +58,18 @@ export default class GalleryList extends	React.Component {
 	}
 
 	rangeChange = (e) => {
-		var value = e.target.value
 		this.setState({
-			range: value
-		})
-		let gallery = value ? this.state.gallery.filter(item => item.data.num_comments === +value) : this.state.gallery
-		this.setState({
-			filtredGallery: gallery
+			rangeValue: e.target.value
 		})
 	}
 
 	render() {
-		const { isFetching, isAuto, range, filtredGallery, max } = this.state;
+		const { isFetching, isAuto, rangeValue, maxRange, gallery } = this.state;
 		return (
 			<div>
 				<div>
-					<label htmlFor="num_coments">{range}</label>
-					<input type="range" defaultValue={range} id="num_coments" name="num_coments" min="0" max={max} step="1" onMouseUp={this.rangeChange} />
+					<label htmlFor="num_coments">{rangeValue}</label>
+					<input type="range" defaultValue={rangeValue} id="num_coments" name="num_coments" min="0" max={maxRange} step="1" onMouseUp={this.rangeChange} />
 				</div>
 
 				<button type="button" className="btn btn-outline-dark mb-2" onClick={this.refresh}>
@@ -85,9 +78,9 @@ export default class GalleryList extends	React.Component {
 
 				<div className="gallery">
 					{ isFetching && <span>'Loading...'</span> }
-					{ this.sortGallery(filtredGallery).map((item,i) => {
+					{ this.sortGallery(this.filterGallery(gallery)).map((item,i) => {
 						return (
-							<GalleryItem item={item} key={i} />
+							<GalleryItem item={item.data} key={i} />
 							);
 						}
 					)}
